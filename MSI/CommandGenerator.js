@@ -25,18 +25,15 @@ const SYSTEM_PROMPT = `당신은 Minecraft Bedrock Edition의 커맨드 전문�
 \`\`\`
 이 커맨드는 자신에게 다이아몬드 검 10개를 지급합니다.`;
 
-// ===== 메인 커맨드 헬퍼 =====
 world.beforeEvents.chatSend.subscribe(async (event) => {
     const player = event.sender;
     const message = event.message;
     
-    // !cmd 또는 !커맨드 명령어 감지
     if (message.startsWith('!cmd ') || message.startsWith('!커맨드 ')) {
         event.cancel = true;
         
         const query = message.replace(/^!(cmd|커맨드)\s+/, '');
         
-        // 로딩 메시지
         player.sendMessage('§e━━━━━━━━━━━━━━━━━━━━━━');
         player.sendMessage('§6[커맨드 AI]§r 커맨드 생성 중...');
         player.sendMessage('§e━━━━━━━━━━━━━━━━━━━━━━');
@@ -51,14 +48,13 @@ world.beforeEvents.chatSend.subscribe(async (event) => {
         }
     }
     
-    // 도움말 명령어
     if (message === '!cmd' || message === '!커맨드') {
         event.cancel = true;
         showHelp(player);
     }
 });
 
-// ===== Gemini API 호출 =====
+// Gemini API Query Center
 async function getCommandHelp(userQuery, playerName) {
     const request = new HttpRequest(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`);
     
@@ -76,18 +72,17 @@ async function getCommandHelp(userQuery, playerName) {
             }]
         }],
         generationConfig: {
-            temperature: 0.3, // 정확성을 위해 낮은 temperature
+            temperature: 0.3,
             maxOutputTokens: 1500,
             topP: 0.8,
             topK: 40
         }
     });
     
-    request.timeout = 10; // 10초 타임아웃
+    request.timeout = 10;
     
     const response = await http.request(request);
     
-    // 응답 상태 확인
     if (response.status !== 200) {
         throw new Error(`API 오류: 상태 코드 ${response.status}`);
     }
@@ -101,34 +96,28 @@ async function getCommandHelp(userQuery, playerName) {
     throw new Error('응답을 받을 수 없습니다.');
 }
 
-// ===== 응답 표시 =====
 function displayCommandResponse(player, response) {
     player.sendMessage('§e━━━━━━━━━━━━━━━━━━━━━━');
     player.sendMessage('§a[커맨드 AI 응답]');
     player.sendMessage('§e━━━━━━━━━━━━━━━━━━━━━━');
     
-    // 커맨드 추출 (백틱으로 감싸진 부분)
     const commandRegex = /```([\s\S]*?)```/g;
     let match;
     let commands = [];
     let explanationText = response;
     
-    // 커맨드 추출
     while ((match = commandRegex.exec(response)) !== null) {
         let command = match[1].trim();
-        // 언어 지정자 제거 (예: ```minecraft)
         command = command.replace(/^(minecraft|mcfunction|)\n/, '');
         commands.push(command);
         explanationText = explanationText.replace(match[0], '');
     }
     
-    // 커맨드 표시
     if (commands.length > 0) {
         player.sendMessage('§b▶ 생성된 커맨드:§r');
         commands.forEach((cmd, index) => {
             player.sendMessage(`§7${index + 1}.§r §e${cmd}§r`);
             
-            // 커맨드 복사 힌트
             if (index === 0) {
                 player.sendMessage('§8(채팅창에 입력하거나 커맨드 블록에 붙여넣으세요)§r');
             }
@@ -136,7 +125,6 @@ function displayCommandResponse(player, response) {
         player.sendMessage('');
     }
     
-    // 설명 표시
     const lines = explanationText.trim().split('\n');
     lines.forEach(line => {
         if (line.trim()) {
@@ -147,7 +135,6 @@ function displayCommandResponse(player, response) {
     player.sendMessage('§e━━━━━━━━━━━━━━━━━━━━━━');
 }
 
-// ===== 메시지 전송 (딜레이 포함) =====
 let messageQueue = new Map();
 
 function sendMessageWithDelay(player, message) {
