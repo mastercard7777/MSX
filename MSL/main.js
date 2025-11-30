@@ -1,13 +1,13 @@
 {
   "format_version": 2,
   "header": {
-    "description": "MSL V2.1",
-    "name": "MSL V2.1",
+    "description": "MSL V2.2x",
+    "name": "MSL V2.2x",
     "uuid": "9eaf8748-1ce3-4f58-8a7c-e20aedd6f775",
     "version": [
       0,
       2,
-      1
+      2
     ],
     "min_engine_version": [
       1,
@@ -23,7 +23,7 @@
       "version": [
         0,
         2,
-        1
+        2
       ]
     }
   ]
